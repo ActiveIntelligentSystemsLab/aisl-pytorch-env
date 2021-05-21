@@ -1,0 +1,4 @@
+ARG VERSION
+FROM nvcr.io/nvidia/pytorch:${VERSION}
+
+RUN pip install tqdm efficientnet_pytorch
