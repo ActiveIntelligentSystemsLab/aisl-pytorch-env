@@ -21,23 +21,29 @@ def main():
     labels_map = json.load(open('labels_map.txt'))
     labels_map = [labels_map[str(i)] for i in range(1000)]
 
-
     # Show all available models in torch.hub
     print("Available models:")
-    print(torch.hub.list('pytorch/vision:v0.6.0'))
+    print(torch.hub.list('pytorch/vision:v0.9.0'))
     print()
     print("Model name?: ")
     model_name = input()
     print("Version?: ")
     version = input()
     # Import model
-    model = import_model(model_name, version)
+    try:
+        model = import_model(model_name, version)
+    except ValueError:
+        print("Invalid input ('{}', '{}')".format(model_name, version))
+        exit(1)
+
     model.to('cuda')
 
     # Classify
     model.eval()
     with torch.no_grad():
         outputs = model(img.to('cuda'))
+
+        print("Size: {}".format(outputs.size()))
 
     # Print predictions
     print('-----')

@@ -1,6 +1,7 @@
 NAME=aisl-pytorch
-VERSION=20.03-py3
 CONTAINER_NAME=aisl-pytorch
+VERSION=21.03-py3
+ROS_DISTRO=noetic
 
 build-train: 
 	docker build -t $(NAME)-train:$(VERSION) -f ./docker/Dockerfile_base \
@@ -44,13 +45,47 @@ logs:
 #
 efficientnet-test:
 	docker run -it \
-    		--gpus="device=2" \
-    		-v ${PWD}/training:/root/training/ \
-    		-v /data/aisl/matsuzaki/dataset:/tmp/dataset \
-    		-v /data/aisl/matsuzaki/runs/:/tmp/runs/ \
+		--gpus="device=0" \
+		-v ${PWD}/training:/root/training/ \
+		-v /data/aisl/matsuzaki/dataset:/tmp/dataset \
+		-v /data/aisl/matsuzaki/runs/:/tmp/runs/ \
 		--rm \
 		--shm-size 1G \
 		--workdir /root/training/ \
 		--name $(CONTAINER_NAME) \
 		$(NAME)-train:$(VERSION) \
-    python test.py
+		python test.py
+
+master:
+	docker run -it \
+		--rm \
+		--shm-size 1G \
+		--workdir /root/training/ \
+		-e ROS_MASTER_URI=http://localhost:11311 \
+		--name master \
+		$(NAME)-ros:$(VERSION) \
+		roscore
+
+catkin-build:
+	docker run -it \
+		-v ${PWD}/training:/root/training/ \
+		-v ${PWD}/catkin_ws:/root/catkin_ws/ \
+		--rm \
+		--shm-size 1G \
+		--workdir /root/catkin_ws/ \
+		--name catkin-build \
+		$(NAME)-ros:$(VERSION) \
+		catkin build -DCMAKE_BUILD_TYPE=Debug
+
+ros-object-recognition:
+	docker run -it \
+		--gpus="device=0" \
+		-v ${PWD}/training:/root/training/ \
+		-v ${PWD}/catkin_ws:/root/catkin_ws/ \
+		--rm \
+		--shm-size 1G \
+		--workdir /root/catkin_ws/ \
+		-e ROS_MASTER_URI=http://master:11311 \
+		--name ros-object-recognition \
+		$(NAME)-ros:$(VERSION) \
+		roslaunch pytorch_ros object_recognition.launch
