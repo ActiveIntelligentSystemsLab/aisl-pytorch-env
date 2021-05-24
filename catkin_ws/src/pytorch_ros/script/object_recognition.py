@@ -164,7 +164,12 @@ class ObjectRecognitionNode(object):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         rospy.loginfo(self.device)
-        self.model = import_model(model_name, version)
+        try:
+            self.model = import_model(model_name, version)
+        except ValueError:
+            print("Invalid input ('{}', '{}')".format(model_name, version))
+            exit(1)
+
         self.model.to(self.device)
         self.model.eval()
 
@@ -194,9 +199,11 @@ class ObjectRecognitionNode(object):
             prob = torch.softmax(output, dim=1)[0, idx].item()
             res_str = '{label:<75} ({p:.2f}%)'.format(label=self.labels_map[idx], p=prob*100)
             if is_top:
+                rospy.loginfo(res_str)
+
                 write_on_pil(pil_image, res_str)
                 img_msg_pub = pil_to_imgmsg(pil_image)
-                rospy.loginfo(pil_image.mode)
+
                 # Publish image for visualization and the label of the top object
                 self.image_pub.publish(img_msg_pub)
                 self.result_pub.publish(res_str)
