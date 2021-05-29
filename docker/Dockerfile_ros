@@ -44,7 +44,7 @@ ENV PYTHONPATH /opt/ros/${ROS_DISTRO}/lib/python3/dist-packages:$PYTHONPATH
 #    && /opt/conda/bin/python ../tools/build_libtorch.py
 
 ########## PyTorch ##########
-RUN pip3 install torch==1.8.1 torchvision==0.9.0
+RUN pip3 install torch==1.8.1 torchvision
 RUN pip3 install efficientnet_pytorch
 
 RUN echo 'network_if=eth0' >> ~/.bashrc
@@ -54,5 +54,8 @@ RUN echo '      echo "ROS_IP is not set."' >> ~/.bashrc
 RUN echo '      else' >> ~/.bashrc
 RUN echo '            export ROS_IP=$TARGET_IP' >> ~/.bashrc
 RUN echo '            fi' >> ~/.bashrc
+
+RUN pip3 install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
+
 
 ENTRYPOINT ["/ros_entrypoint.sh"]

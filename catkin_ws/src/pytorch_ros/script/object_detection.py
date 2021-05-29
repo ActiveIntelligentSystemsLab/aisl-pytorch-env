@@ -10,7 +10,9 @@ __maintainer__ = "ShigemichiMatsuzaki"
 import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import RegionOfInterest
 from cv_bridge import CvBridge
+from deep_learning_msgs.msg import ObjectDetection
 
 # PyTorch related
 import torch
@@ -29,39 +31,34 @@ import struct
 
 from rospy_util.utils import imgmsg_to_pil, pil_to_imgmsg, write_on_pil
 
-class ObjectRecognitionNode(object):
+class ObjectDetectionNode(object):
     def __init__(self):
 
         # Get ROS params
-        model_name = rospy.get_param('~model_name', 'resnet')
+        model_name = rospy.get_param('~model_name', 'yolov5s')
         version = rospy.get_param('~version', '18')
-        label_map_path = rospy.get_param('~label_map_path', '')
 
         # Preprocess image
         self.transforms = transforms.Compose([
-            transforms.Resize(224), transforms.ToTensor(),
+            transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
 
         # Import model
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         rospy.loginfo(self.device)
-        try:
-            self.model = import_model(model_name, version)
-        except ValueError:
-            print("Invalid input ('{}', '{}')".format(model_name, version))
-            exit(1)
+
+        # Import YOLOv5 model from PyTorch Hub
+        # Usage: https://github.com/ultralytics/yolov5/issues/36
+        self.model = torch.hub.load('ultralytics/yolov5', model_name, pretrained=True)
 
         self.model.to(self.device)
         self.model.eval()
 
         # Load ImageNet class names
-        self.labels_map = json.load(open(label_map_path))
-        self.labels_map = [self.labels_map[str(i)] for i in range(1000)]
-
         self.image_sub = rospy.Subscriber('image', Image, self.image_callback)
         self.image_pub = rospy.Publisher('visualize', Image, queue_size=10)
-        self.result_pub = rospy.Publisher('top_label', String, queue_size=10)
+        self.result_pub = rospy.Publisher('detection_result', ObjectDetection, queue_size=10)
         self.bridge = CvBridge()
 
     def image_callback(self, img_msg):
@@ -71,33 +68,46 @@ class ObjectRecognitionNode(object):
             img_msg: Image message
         """
         pil_image, _, _ = imgmsg_to_pil(img_msg)
-        tensor_image = self.transforms(pil_image).unsqueeze(0)
 
         with torch.no_grad():
-            output = self.model(tensor_image.to(self.device))
+            output = self.model(pil_image)
+#            output = self.model(tensor_image.to(self.device))
 
-        is_top = True
-        for idx in torch.topk(output, k=5).indices.squeeze(0).tolist():
-            prob = torch.softmax(output, dim=1)[0, idx].item()
-            res_str = '{label:<75} ({p:.2f}%)'.format(label=self.labels_map[idx], p=prob*100)
-            if is_top:
-                rospy.loginfo(res_str)
+        output.render()
+        out_img = PIL.Image.fromarray(output.imgs[0])
+        out_img_msg = pil_to_imgmsg(out_img)
 
-                write_on_pil(pil_image, res_str)
-                img_msg_pub = pil_to_imgmsg(pil_image)
+        res_msg = self.result_to_msg(output.pandas().xyxy[0].to_json(orient="records"))
 
-                # Publish image for visualization and the label of the top object
-                self.image_pub.publish(img_msg_pub)
-                self.result_pub.publish(res_str)
-                is_top = False
+        self.result_pub.publish(res_msg)
+        self.image_pub.publish(out_img_msg)
+
+    def result_to_msg(self, results):
+        results = json.loads(results)
+        res = ObjectDetection()
+        res.header.stamp = rospy.Time.now()
+        for i, result in enumerate(results):
+            # Create ROI instance
+            roi = RegionOfInterest()
+            roi.x_offset = int(result['xmin'])
+            roi.y_offset = int(result['ymin'])
+            roi.width = int(result['xmax']-result['xmin'])
+            roi.height = int(result['ymax']-result['ymin'])
+            
+            res.boxes.append(roi)
+            res.class_ids.append(result['class'])
+            res.class_names.append(result['name'])
+            res.scores.append(result['confidence'])
+
+        return res
 
 def main():
     """Main function to initialize the ROS node"""
     rospy.init_node("object_recognition_node")
 
-    obj_recog_node = ObjectRecognitionNode()
+    obj_detection_node = ObjectDetectionNode()
 
-    rospy.loginfo('object_recognition_node is initialized')
+    rospy.loginfo('object_detection_node is initialized')
     
     rospy.spin()  
 
