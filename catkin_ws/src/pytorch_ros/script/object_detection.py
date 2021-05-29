@@ -71,13 +71,13 @@ class ObjectDetectionNode(object):
 
         with torch.no_grad():
             output = self.model(pil_image)
-#            output = self.model(tensor_image.to(self.device))
 
         output.render()
         out_img = PIL.Image.fromarray(output.imgs[0])
         out_img_msg = pil_to_imgmsg(out_img)
 
         res_msg = self.result_to_msg(output.pandas().xyxy[0].to_json(orient="records"))
+        res_msg.header.frame_id = img_msg.header.frame_id
 
         self.result_pub.publish(res_msg)
         self.image_pub.publish(out_img_msg)
