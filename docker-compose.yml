@@ -2,7 +2,7 @@ version: "2.3"
 
 services: 
   master:
-    container_name: master
+    container_name: master-aisl-pytorch
     image: aisl-pytorch-ros:21.03-py3
     command: roscore
     environment:
@@ -30,7 +30,25 @@ services:
     command: roslaunch pytorch_ros object_recognition.launch
     working_dir: /root/catkin_ws
     environment:
-      - ROS_MASTER_URI=http://master:11311
+      - ROS_MASTER_URI=http://master-aisl-pytorch:11311
+      - PYTHONPATH=$PYTHONPATH:/root/training/
+    volumes:
+      - ./training:/root/training/
+      - ./catkin_ws:/root/catkin_ws/
+    tty: true
+    shm_size: 512M
+
+  ros-object-detection:
+    container_name: ros-object-detection
+    depends_on:
+      - master
+    build: .
+    runtime: nvidia
+    image: aisl-pytorch-ros:21.03-py3
+    command: roslaunch pytorch_ros object_detection.launch
+    working_dir: /root/catkin_ws
+    environment:
+      - ROS_MASTER_URI=http://master-aisl-pytorch:11311
       - PYTHONPATH=$PYTHONPATH:/root/training/
     volumes:
       - ./training:/root/training/
