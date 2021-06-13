@@ -18,12 +18,11 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
         # +++++++++ image1.jpg
         # +++++++++ image2.jpg
 
-        rgb_root_dir = os.path.join(root, 'images')
         self.train = is_training
         if self.train:
-            data_file = os.path.join(root, 'train.txt')
+            data_file = os.path.join(root, 'train.lst')
         else:
-            data_file = os.path.join(root, 'val.txt')
+            data_file = os.path.join(root, 'val.lst')
 
         self.images = []
         self.labels = []
@@ -32,8 +31,8 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
                 # line is a comma separated file that contains mapping between RGB image and class iD
                 # <image1.jpg>, Class_ID
                 line_split = line.split(',') # index 0 contains rgb location and index 1 contains label id
-                rgb_img_loc = rgb_root_dir + os.sep + line_split[0].strip()
-                label_id = int(line_split[1].strip()) #strip to remove spaces
+                rgb_img_loc = line_split[0].strip()
+                label_id = int(line_split[1].strip()) - 1#strip to remove spaces
                 assert os.path.isfile(rgb_img_loc)
                 self.images.append(rgb_img_loc)
                 self.labels.append(label_id)
@@ -67,19 +66,19 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
         Args:
             obj (OpenCV): An object image.
 
-	Returns:
-	    OpenCV image: Generated background image
+	    Returns:
+	        OpenCV image: Generated background image
         """
         # Take max of the height and the width of the object image
         size = max(obj.shape[:2])
         bg = np.ones((size, size, 3), dtype=np.uint8)
 
         # Set random value to each color channel
-	bg[:,:,0] *= random.randint(0, 255)
-	bg[:,:,1] *= random.randint(0, 255)
-	bg[:,:,2] *= random.randint(0, 255)
-
-	return bg
+        bg[:,:,0] *= random.randint(0, 255)
+        bg[:,:,1] *= random.randint(0, 255)
+        bg[:,:,2] *= random.randint(0, 255)
+        
+        return bg
     
     def synthesize_image(self, obj, background):
         """ Generate a training image by blending an object image and a background image
@@ -88,8 +87,8 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
             obj (OpenCV): An object image.
             background (OpenCV): A background image. Width and height have to be bigger than those of 'obj'
 
-	Returns:
-	    OpenCV image: Synthesized training image
+        Returns:
+	        OpenCV image: Synthesized training image
         """
         # Get the sizes of the images
         h_b = background.shape[0]
@@ -112,7 +111,7 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
         else:
             background[h_start:h_end,w_start:w_end] = obj
 
-	return background
+        return background
 
     def __len__(self):
         return len(self.images)
