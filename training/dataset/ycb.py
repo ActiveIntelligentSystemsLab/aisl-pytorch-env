@@ -37,15 +37,18 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
                 self.images.append(rgb_img_loc)
                 self.labels.append(label_id)
 
-        self.transform = self.transforms(inp_size=size, is_training=is_training)
+        self.transform = self.transforms(size=size, is_training=is_training)
 
     def transforms(self, size=None, is_training=True):
         if is_training:
             return A.Compose(
             [
-                A.SmallestMaxSize(max_size=160),
-                A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
-                A.RandomCrop(height=128, width=128),
+#                A.SmallestMaxSize(max_size=160),
+#                A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
+#                A.RandomCrop(height=128, width=128),
+                A.Resize(height=size, width=size),
+                A.GaussNoise(p=0.7),
+                A.GaussianBlur(p=0.5),
                 A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
                 A.RandomBrightnessContrast(p=0.5),
                 A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
@@ -107,7 +110,7 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
             # True indicates non-zero alpha
             mask = obj[:,:,3] != 0
             # Copy values of pixels whose alpha is non-zero
-            background[h_start:h_end,w_start:w_end][mask] = obj[mask]
+            background[h_start:h_end,w_start:w_end][mask] = obj[mask][:,:3]
         else:
             background[h_start:h_end,w_start:w_end] = obj
 
@@ -122,6 +125,6 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
 
         bg = self.generate_background(obj_img)
         rgb_img = self.synthesize_image(obj_img, bg)
-        rgb_img = self.transform(rgb_img)
+        rgb_img = self.transform(image=rgb_img)
 
         return rgb_img, label_id

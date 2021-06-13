@@ -18,7 +18,7 @@ def train(model, data_loader, epoch, criterion, optimizer, scheduler):
         loss_sum = 0.0
         for i, batch in enumerate(tqdm(data_loader)):
             optimizer.zero_grad()
-            image = batch[0].to('cuda')
+            image = batch[0]["image"].to('cuda')
             label = batch[1].to('cuda')
 
             output = model(image)
@@ -36,7 +36,8 @@ def train(model, data_loader, epoch, criterion, optimizer, scheduler):
 def main():
     trainset = SyntheticClassificationDataset(root="./data_list/")
     data_loader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, pin_memory=True)
-    model = import_model(model_name="efficientnet", version="b7", num_classes=77)
+    model = import_model(model_name="efficientnet", version="b0", num_classes=77)
+    model.to('cuda')
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.009)
 #    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, verbose=True)
