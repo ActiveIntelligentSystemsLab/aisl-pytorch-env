@@ -1,4 +1,6 @@
 ARG VERSION
 FROM nvcr.io/nvidia/pytorch:${VERSION}
 
-RUN pip install tqdm efficientnet_pytorch
+RUN pip install tqdm efficientnet_pytorch albumentations
+# For using YOLOv5
+RUN pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
