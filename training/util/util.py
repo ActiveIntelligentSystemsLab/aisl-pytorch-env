@@ -87,3 +87,22 @@ def import_model(model_name, version, num_classes=-1):
         raise ValueError
         
     return model
+
+def import_detection_model(model_name, version, num_classes=-1):
+    """ Import pre-trained object detection models
+    https://tutorials.pytorch.kr/beginner/finetuning_torchvision_models_tutorial.html
+
+    Args:
+        model_name: Name of the model to import
+            ['ssd', 'yolov5']
+        version: Version of the model (It depends on the model)
+
+    Return:
+        Imported model
+    """
+    model = None
+    # ResNet
+    if model_name == 'ssd':
+        pass
+    elif True:
+        pass
