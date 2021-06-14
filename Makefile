@@ -1,6 +1,7 @@
 NAME=aisl-pytorch
 CONTAINER_NAME=aisl-pytorch
-VERSION=21.03-py3
+#VERSION=21.03-py3
+VERSION=20.03-py3
 ROS_DISTRO=noetic
 
 build-train: 
