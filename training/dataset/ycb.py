@@ -3,10 +3,92 @@ import os
 import cv2
 from PIL import Image
 from torchvision.transforms import Compose, RandomResizedCrop, RandomHorizontalFlip, ToTensor, Normalize, Resize
+from torchvision.transforms import functional as F
 import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import random
+import copy
+
+ycb_class_list = [
+    "001_chips_can",
+    "002_master_chef_can",
+    "003_cracker_box",
+    "004_sugar_box",
+    "005_tomato_soup_can",
+    "006_mustard_bottle",
+    "007_tuna_fish_can",
+    "008_pudding_box",
+    "009_gelatin_box",
+    "010_potted_meat_can",
+    "011_banana",
+    "012_strawberry",
+    "013_apple",
+    "014_lemon",
+    "015_peach",
+    "016_pear",
+    "017_orange",
+    "018_plum",
+    "019_pitcher_base",
+    "020",
+    "021_bleach_cleanser",
+    "022_windex_bottle",
+    "023_wine_glass",
+    "024_bowl",
+    "025",
+    "026_sponge",
+    "027",
+    "028",
+    "029_plate",
+    "030_fork",
+    "031_spoon",
+    "032_knife",
+    "033_spatula",
+    "034",
+    "035_power_drill",
+    "036_wood_block",
+    "037_scissors",
+    "038_padlock",
+    "039_key",
+    "040_large_marker",
+    "041_small_marker",
+    "042_adjustable_wrench",
+    "043_phillips_screwdriver",
+    "044_flat_screwdriver",
+    "045",
+    "046",
+    "047_plastic_nut",
+    "048_hammer",
+    "049_small_clamp",
+    "050_medium_clamp",
+    "051_large_clamp",
+    "052_extra_large_clamp",
+    "053_mini_soccer_ball",
+    "054_softball",
+    "055_baseball",
+    "056_tennis_ball",
+    "057_racquetball",
+    "058_golf_ball",
+    "059_chain",
+    "060",
+    "061_foam_brick",
+    "062_dice",
+    "063-marbles",
+    "064",
+    "065-cups",
+    "066",
+    "067",
+    "068",
+    "069",
+    "070-a_colored_wood_blocks",
+    "071_nine_hole_peg_test",
+    "072-toy_airplane",
+    "073-lego_duplo",
+    "074",
+    "075",
+    "076_timer",
+    "077_rubiks_cube"
+]
 
 class SyntheticClassificationDataset(torch.utils.data.Dataset):
     def __init__(self, root, size=224, is_training=True):
@@ -51,16 +133,12 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
                 A.GaussianBlur(p=0.5),
                 A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
                 A.RandomBrightnessContrast(p=0.5),
-                A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-                ToTensorV2(),
             ])
         else:
             return A.Compose(
             [
                 A.SmallestMaxSize(max_size=160),
                 A.CenterCrop(height=128, width=128),
-                A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-                ToTensorV2(),
             ])
 
     def generate_background(self, obj):
@@ -125,6 +203,12 @@ class SyntheticClassificationDataset(torch.utils.data.Dataset):
 
         bg = self.generate_background(obj_img)
         rgb_img = self.synthesize_image(obj_img, bg)
-        rgb_img = self.transform(image=rgb_img)
+        rgb_img = cv2.cvtColor(rgb_img, cv2.COLOR_BGR2RGB)
+        rgb_img = self.transform(image=rgb_img)["image"]
+        orig_img = copy.deepcopy(rgb_img)
 
-        return rgb_img, label_id
+        rgb_img = F.to_tensor(Image.fromarray(rgb_img))
+        rgb_img = F.normalize(rgb_img, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)) # normalize the tensor
+        orig_img = F.to_tensor(Image.fromarray(orig_img))
+
+        return {"rgb_img": rgb_img, "orig_img": orig_img, "label_id": label_id}

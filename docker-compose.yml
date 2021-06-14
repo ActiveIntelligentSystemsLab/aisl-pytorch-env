@@ -55,3 +55,15 @@ services:
       - ./catkin_ws:/root/catkin_ws/
     tty: true
     shm_size: 512M
+
+  tensorboard:
+    container_name: tensorboard-aisl-pytorch
+    image: aisl-pytorch-train:20.03-py3
+    entrypoint: tensorboard --logdir /tmp/runs
+    build: .
+    ports:
+      - 60009:6006
+    mem_limit: 15g
+    volumes:
+      - ./espdnet/:/root/espdnet/
+      - /data/aisl/matsuzaki/runs/ycb_classification:/tmp/runs/
