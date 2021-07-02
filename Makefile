@@ -58,6 +58,19 @@ efficientnet-test:
 		$(NAME)-train:$(VERSION) \
 		python test.py
 
+train:
+	docker run -it \
+		--gpus="device=2" \
+		-v ${PWD}/training:/root/training/ \
+		-v /data/aisl/matsuzaki/dataset:/tmp/dataset \
+		-v /data/aisl/matsuzaki/runs/:/tmp/runs/ \
+		--rm \
+		--shm-size 1G \
+		--workdir /root/training/ \
+		--name $(NAME)-train \
+		$(NAME)-train:$(VERSION) \
+		python train.py
+
 master:
 	docker run -it \
 		--rm \

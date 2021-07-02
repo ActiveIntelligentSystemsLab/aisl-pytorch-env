@@ -4,6 +4,10 @@ __maintainer__ = "ShigemichiMatsuzaki"
 # ============================================
 
 import torch
+import cv2
+import numpy as np
+import torchvision
+import os
 
 def import_model(model_name, version, num_classes=-1):
     """ Import pre-trained models
@@ -106,3 +110,63 @@ def import_detection_model(model_name, version, num_classes=-1):
         pass
     elif True:
         pass
+
+def visualize_classification(image_batch, output, class_list, writer, epoch):
+    """ Visualize the prediction results
+
+    Args:
+        image_batch : Input image batch
+        output      : Output of the model for the image batch
+        class_list  : List that stores class names. ith element stores the name of label i
+        writer      : Writer of Tensorboard
+        epoch       : The number of the current epoch
+    """
+    for i in range(image_batch.size()[0]):
+        # Convert i the element of the batch to a NumPy array (= OpenCV image)
+        cv_image = image_batch[i].cpu().numpy().transpose(1, 2, 0)
+        cv_image = (cv_image * 255).astype(np.uint8)
+        cv_image = np.ascontiguousarray(cv_image)
+
+        # Get the name of the predicted class
+        label = torch.argmax(output[i])
+        label_name = class_list[label.item()]
+
+        # Write the label name in the image
+        # Show boadered characters for visibility
+        # https://imagingsolution.net/program/draw-outline-character/ (Japanese)
+        #   Write contour
+        cv2.putText(cv_image, label_name, (10, 30),
+               cv2.FONT_HERSHEY_PLAIN, 1,
+               (255, 255, 255), 5, cv2.LINE_AA)
+        #   Write inside
+        cv2.putText(cv_image, label_name, (10, 30),
+               cv2.FONT_HERSHEY_PLAIN, 1,
+               (0, 0, 0), 2, cv2.LINE_AA)
+
+        # Append the image in the new batch
+        if i == 0:
+            np_batch = np.expand_dims(cv_image.transpose(2, 0, 1), axis=0)
+        else:
+            np_batch = np.append(np_batch, np.expand_dims(cv_image.transpose(2, 0, 1), axis=0), axis=0)
+
+    # Make a grid image and write it in the log
+    grid = torchvision.utils.make_grid(torch.from_numpy(np_batch)).numpy()
+    writer.add_image('results', grid, epoch)
+
+def get_log_path(root, net_type):
+    """Create a directory to the log files (Tensorboard etc.)
+
+    Args:
+        root (string): A path of the root directory
+        net_type (string): The type of the generator network used in the training
+    
+    Returns:
+        string: A path to the directory
+    """
+    import datetime
+    now = datetime.datetime.now()
+    now += datetime.timedelta(hours=9)
+    timestr = now.strftime("%Y%m%d-%H%M%S")
+    log_path = os.path.join(root, net_type+"_"+timestr)
+
+    return log_path
