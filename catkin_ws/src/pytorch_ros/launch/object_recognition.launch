@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="image" default="/usb_cam/image_raw" />
-  <arg name="model_name" default="resnet" />
-  <arg name="version" default="152" />
+  <arg name="model_name" default="efficientnet" />
+  <arg name="version" default="b7" />
 
   <node pkg="pytorch_ros" type="object_recognition.py" name="object_recognition" output="screen">
     <remap from="image" to="$(arg image)" />
