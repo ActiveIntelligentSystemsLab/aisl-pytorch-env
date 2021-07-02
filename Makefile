@@ -2,6 +2,8 @@ NAME=aisl-pytorch
 CONTAINER_NAME=aisl-pytorch
 VERSION=21.03-py3
 ROS_DISTRO=noetic
+DATASET_DIR=/data/aisl/matsuzaki/dataset
+LOG_DIR=/data/aisl/matsuzaki/runs/
 
 build-train: 
 	docker build -t $(NAME)-train:$(VERSION) -f ./docker/Dockerfile_base \
@@ -65,6 +67,19 @@ master:
 		--name master \
 		$(NAME)-ros:$(VERSION) \
 		roscore
+
+train:
+	docker run -it \
+		--gpus="device=2" \
+		-v ${PWD}/training:/root/training/ \
+		-v ${DATASET_DIR}:/tmp/dataset \
+		-v ${LOG_DIR}:/tmp/runs/ \
+		--rm \
+		--shm-size 1G \
+		--workdir /root/training/ \
+		--name $(NAME)-train \
+		$(NAME)-train:$(VERSION) \
+		python train.py
 
 catkin-build:
 	docker run -it \

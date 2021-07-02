@@ -26,8 +26,8 @@ services:
       - master
     build: .
     runtime: nvidia
-    image: aisl-pytorch-ros:21.03-py3
-    command: roslaunch pytorch_ros object_recognition.launch
+    image: aisl-pytorch-ros:20.03-py3
+    command: roslaunch pytorch_ros object_recognition.launch usb_cam:=false
     working_dir: /root/catkin_ws
     environment:
       - ROS_MASTER_URI=http://master-aisl-pytorch:11311
@@ -37,6 +37,23 @@ services:
       - ./catkin_ws:/root/catkin_ws/
     tty: true
     shm_size: 512M
+    privileged: true
+
+  ros-usb-cam:
+    container_name: ros-usb-cam
+    depends_on:
+      - master
+    build: .
+    runtime: nvidia
+    image: aisl-pytorch-ros:20.03-py3
+    command: rosrun usb_cam usb_cam_node
+    working_dir: /root/catkin_ws
+    environment:
+      - ROS_MASTER_URI=http://master-aisl-pytorch:11311
+    volumes:
+      - ./catkin_ws:/root/catkin_ws/
+    tty: true
+    privileged: true
 
   ros-object-detection:
     container_name: ros-object-detection

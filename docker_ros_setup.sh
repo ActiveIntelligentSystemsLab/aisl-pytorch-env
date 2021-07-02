@@ -13,7 +13,7 @@ else
   CONTAINER_NAME="master"
 fi
 
-IP_ADDRESS=`docker inspect $CONTAINER_NAME | grep -E "IPAddress" | grep -o "[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+"`
+IP_ADDRESS=`docker inspect $CONTAINER_NAME | grep -m1 -E "IPAddress" | grep -o "[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+"`
 
 if [ "$IP_ADDRESS" != "" ]; then
   export ROS_MASTER_URI=http://$IP_ADDRESS:11311

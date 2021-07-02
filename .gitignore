@@ -135,3 +135,5 @@ catkin_ws/.catkin_tools/
 catkin_ws/devel/
 catkin_ws/logs/
 catkin_ws/build/
+
+.devcontainer/
