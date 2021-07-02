@@ -44,7 +44,7 @@ ENV PYTHONPATH /opt/ros/${ROS_DISTRO}/lib/python3/dist-packages:$PYTHONPATH
 #    && /opt/conda/bin/python ../tools/build_libtorch.py
 
 ########## PyTorch ##########
-RUN pip3 install torch==1.8.1 torchvision
+RUN pip3 install torch==1.5.0 torchvision
 RUN pip3 install efficientnet_pytorch
 
 RUN echo 'network_if=eth0' >> ~/.bashrc
