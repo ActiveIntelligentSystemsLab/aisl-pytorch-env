@@ -1,0 +1,3 @@
+[submodule "catkin_ws/src/aisl_utils"]
+	path = catkin_ws/src/aisl_utils
+	url = https://github.com/ActiveIntelligentSystemsLab/aisl_utils

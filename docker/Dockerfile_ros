@@ -1,14 +1,11 @@
 ARG VERSION
-FROM nvcr.io/nvidia/pytorch:${VERSION}
+FROM nvidia/cudagl:11.2.2-devel
 
 ENV ROS_DISTRO noetic
 
 WORKDIR /workspace
 # avoid blocking in installation of tzdata
 ENV DEBIAN_FRONTEND=noninteractive
-#COPY requirements.txt /tmp
-
-#RUN pip install -r /tmp/requirements.txt && rm -rf /tmp/requirements.txt
 
 RUN apt-get update && apt install -y lsb-release net-tools \
     && apt-get clean \
@@ -23,7 +20,9 @@ RUN apt update &&  \
     apt install -y ros-${ROS_DISTRO}-ros-base \
                    ros-${ROS_DISTRO}-image-transport \
                    ros-${ROS_DISTRO}-image-transport-plugins \
-                   python3-catkin-tools python3-rosdep\
+                   ros-${ROS_DISTRO}-usb-cam \
+                   python3-catkin-tools python3-rosdep python3-osrf-pycommon  \
+                   python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*rm
 
@@ -36,16 +35,18 @@ RUN chmod 777 /ros_entrypoint.sh
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 
 # Set environment variables
-ENV PATH /opt/ros/${ROS_DISTRO}/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV PATH /opt/ros/${ROS_DISTRO}/bin:$PATH
 ENV PYTHONPATH /opt/ros/${ROS_DISTRO}/lib/python3/dist-packages:$PYTHONPATH
 
 # Install LibTorch, a C++ API of PyTorch
 #  - Following the instruction in https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
 #  - Use /opt/conda/bin/python because the default python can't locate necessary modules due to its configuration
-RUN cd /opt/pytorch/pytorch/ && mkdir build_libtorch && cd build_libtorch \
-    && /opt/conda/bin/python ../tools/build_libtorch.py
+#RUN cd /opt/pytorch/pytorch/ && mkdir build_libtorch && cd build_libtorch \
+#    && /opt/conda/bin/python ../tools/build_libtorch.py
 
-RUN echo 'alias pt-python="/opt/conda/bin/python $@"' >> ~/.bashrc
+########## PyTorch ##########
+RUN pip3 install torch==1.8.1 torchvision
+RUN pip3 install efficientnet_pytorch
 
 RUN echo 'network_if=eth0' >> ~/.bashrc
 RUN echo 'export TARGET_IP=$(LANG=C /sbin/ifconfig $network_if | grep -Eo '"'"'inet (addr:)?([0-9]*\.){3}[0-9]*'"'"' | grep -Eo '"'"'([0-9]*\.){3}[0-9]*'"'"')' >> ~/.bashrc
@@ -54,5 +55,7 @@ RUN echo '      echo "ROS_IP is not set."' >> ~/.bashrc
 RUN echo '      else' >> ~/.bashrc
 RUN echo '            export ROS_IP=$TARGET_IP' >> ~/.bashrc
 RUN echo '            fi' >> ~/.bashrc
+
+RUN pip3 install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
 
 ENTRYPOINT ["/ros_entrypoint.sh"]

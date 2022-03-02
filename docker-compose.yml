@@ -1,0 +1,86 @@
+version: "2.3"
+
+services: 
+  master:
+    container_name: master-aisl-pytorch
+    image: aisl-pytorch-ros:21.03-py3
+    command: roscore
+    environment:
+      - ROS_MASTER_URI=http://localhost:11311
+    tty: true
+
+  catkin-build:
+    container_name: catkin-build
+    build: .
+    runtime: nvidia
+    image: aisl-pytorch-ros:21.03-py3
+    command: catkin build -DCMAKE_BUILD_TYPE=Debug
+    working_dir: /root/catkin_ws
+    volumes:
+      - ./catkin_ws/:/root/catkin_ws/
+    tty: true
+
+  ros-object-recognition:
+    container_name: ros-object-recognition
+    depends_on:
+      - master
+    build: .
+    runtime: nvidia
+    image: aisl-pytorch-ros:20.03-py3
+    command: roslaunch pytorch_ros object_recognition.launch usb_cam:=false
+    working_dir: /root/catkin_ws
+    environment:
+      - ROS_MASTER_URI=http://master-aisl-pytorch:11311
+      - PYTHONPATH=$PYTHONPATH:/root/training/
+    volumes:
+      - ./training:/root/training/
+      - ./catkin_ws:/root/catkin_ws/
+    tty: true
+    shm_size: 512M
+    privileged: true
+
+  ros-usb-cam:
+    container_name: ros-usb-cam
+    depends_on:
+      - master
+    build: .
+    runtime: nvidia
+    image: aisl-pytorch-ros:20.03-py3
+    command: rosrun usb_cam usb_cam_node
+    working_dir: /root/catkin_ws
+    environment:
+      - ROS_MASTER_URI=http://master-aisl-pytorch:11311
+    volumes:
+      - ./catkin_ws:/root/catkin_ws/
+    tty: true
+    privileged: true
+
+  ros-object-detection:
+    container_name: ros-object-detection
+    depends_on:
+      - master
+    build: .
+    runtime: nvidia
+    image: aisl-pytorch-ros:21.03-py3
+    command: roslaunch pytorch_ros object_detection.launch
+    working_dir: /root/catkin_ws
+    environment:
+      - ROS_MASTER_URI=http://master-aisl-pytorch:11311
+      - PYTHONPATH=$PYTHONPATH:/root/training/
+    volumes:
+      - ./training:/root/training/
+      - ./catkin_ws:/root/catkin_ws/
+    tty: true
+    shm_size: 512M
+
+  tensorboard:
+    container_name: tensorboard-aisl-pytorch
+    image: aisl-pytorch-train:20.03-py3
+    entrypoint: tensorboard --logdir /tmp/runs
+    build: .
+    ports:
+      - 60009:6006
+    mem_limit: 15g
+    volumes:
+      - ./espdnet/:/root/espdnet/
+      - /data/aisl/matsuzaki/runs/ycb_classification:/tmp/runs/
