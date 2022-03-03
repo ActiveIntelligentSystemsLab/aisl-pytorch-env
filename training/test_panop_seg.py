@@ -30,6 +30,8 @@ def get_arguments():
 
     """
     parser = argparse.ArgumentParser(description='Test')
+    parser.add_argument('--image-path', type=str, default='./images/000000439715.jpg',
+                        help='Image location')
     parser.add_argument('--data-dir', type=str, default='/tmp/dataset/Cityscapes/',
                         help='Data location')
     parser.add_argument('--model', type=str, default='deeplab',
@@ -57,7 +59,10 @@ def cv2_imshow(img):
 def main():
     args = get_arguments()
 
-    im = cv2.imread(os.path.join(args.data_dir, "leftImg8bit/test/berlin/berlin_000023_000019_leftImg8bit.png"))
+    #
+    # From: https://yamayou-1.hatenablog.com/entry/2021/02/27/152723
+    #
+    im = cv2.imread(args.image_path)
     # Detectron2のコンフィグを読み込みます
     cfg = get_cfg()
 
@@ -77,11 +82,6 @@ def main():
     predictor = DefaultPredictor(cfg)
     # Panoptic Segmentationは少しコード違います
     panoptic_seg, segments_info = predictor(im)["panoptic_seg"]
-
-    # 予測された結果を確認します。
-    # 出力フォーマットはhttps://detectron2.readthedocs.io/en/latest/tutorials/models.html#model-output-formatで確認できます
-#    print(outputs["instances"].pred_classes)
-#    print(outputs["instances"].pred_boxes)
 
     # `Visualizer`を使用することで、画像上に予測結果を表示できます
     v = Visualizer(im[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
