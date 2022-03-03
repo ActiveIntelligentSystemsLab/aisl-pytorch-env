@@ -1,6 +1,58 @@
 version: "2.3"
 
-services: 
+services:
+  # DL training-related
+  train-semantic-segmentation:
+    container_name: train-semantic-segmentation
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_base
+      args:
+        - VERSION=22.01-py3
+    image: aisl-pytorch-train:22.01-py3
+    command: python train_seg.py
+    working_dir: /root/training/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    volumes:
+      - ${PWD}/training:/root/training/
+      - /mnt/DATA/matsuzaki/datasets/:/tmp/dataset
+      - /mnt/DATA/matsuzaki/runs/:/tmp/runs/
+    tty: true
+    shm_size: 512M
+    privileged: true
+
+  test-panoptic-segmentation:
+    container_name: test-panoptic-segmentation
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_base
+      args:
+        - VERSION=22.01-py3
+    image: aisl-pytorch-train:22.01-py3
+    command: python test_panop_seg.py
+    working_dir: /root/training/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    volumes:
+      - ${PWD}/training:/root/training/
+      - /mnt/DATA/matsuzaki/datasets/:/tmp/dataset
+      - /mnt/DATA/matsuzaki/runs/:/tmp/runs/
+    tty: true
+    shm_size: 512M
+    privileged: true
+
+  # ROS-related
   master:
     container_name: master-aisl-pytorch
     image: aisl-pytorch-ros:21.03-py3
@@ -11,7 +63,11 @@ services:
 
   catkin-build:
     container_name: catkin-build
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_ros
+      args:
+        - VERSION=latest
     runtime: nvidia
     image: aisl-pytorch-ros:21.03-py3
     command: catkin build -DCMAKE_BUILD_TYPE=Debug
@@ -24,9 +80,13 @@ services:
     container_name: ros-object-recognition
     depends_on:
       - master
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_ros
+      args:
+        - VERSION=latest
     runtime: nvidia
-    image: aisl-pytorch-ros:20.03-py3
+    image: aisl-pytorch-ros:${VERSION}
     command: roslaunch pytorch_ros object_recognition.launch usb_cam:=false
     working_dir: /root/catkin_ws
     environment:
@@ -43,7 +103,11 @@ services:
     container_name: ros-usb-cam
     depends_on:
       - master
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_ros
+      args:
+        - VERSION=latest
     runtime: nvidia
     image: aisl-pytorch-ros:20.03-py3
     command: rosrun usb_cam usb_cam_node
@@ -59,7 +123,11 @@ services:
     container_name: ros-object-detection
     depends_on:
       - master
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_ros
+      args:
+        - VERSION=latest
     runtime: nvidia
     image: aisl-pytorch-ros:21.03-py3
     command: roslaunch pytorch_ros object_detection.launch
@@ -77,7 +145,11 @@ services:
     container_name: tensorboard-aisl-pytorch
     image: aisl-pytorch-train:20.03-py3
     entrypoint: tensorboard --logdir /tmp/runs
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_base
+      args:
+        - VERSION=latest
     ports:
       - 60009:6006
     mem_limit: 15g
