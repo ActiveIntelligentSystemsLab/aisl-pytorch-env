@@ -73,6 +73,24 @@ services:
     tty: true
     shm_size: 512M
 
+  ros-semantic-segmentation:
+    container_name: ros-semantic-segmentation
+    depends_on:
+      - master
+    build: .
+    runtime: nvidia
+    image: aisl-pytorch-ros:21.03-py3
+    command: roslaunch pytorch_ros semantic_segmentation.launch
+    working_dir: /root/catkin_ws
+    environment:
+      - ROS_MASTER_URI=http://master-aisl-pytorch:11311
+      - PYTHONPATH=$PYTHONPATH:/root/training/
+    volumes:
+      - ./training:/root/training/
+      - ./catkin_ws:/root/catkin_ws/
+    tty: true
+    shm_size: 512M
+
   tensorboard:
     container_name: tensorboard-aisl-pytorch
     image: aisl-pytorch-train:21.03-py3
