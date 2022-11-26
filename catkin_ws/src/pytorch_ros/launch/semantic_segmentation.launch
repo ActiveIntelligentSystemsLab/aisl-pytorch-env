@@ -5,8 +5,8 @@
   <arg name="version" default="mobilenet_v3_large" />
 
   <node pkg="pytorch_ros" type="semantic_segmentation.py" name="semantic_segmentation" output="screen">
-    <remap from="image" to="$(arg image)" />
-    <param name="model_name" value="$(arg model_name)" />
-    <param name="version" type="str" value="$(arg version)" />
+    <remap from="~image" to="$(arg image)" />
+    <param name="~model_name" value="$(arg model_name)" />
+    <param name="~version" type="str" value="$(arg version)" />
   </node>
 </launch>

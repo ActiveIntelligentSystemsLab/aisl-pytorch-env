@@ -34,7 +34,7 @@ class ObjectRecognitionNode(InferenceNodeBase):
         self.labels_map = [self.labels_map[str(i)] for i in range(1000)]
 
         # Additional publisher
-        self.result_pub = rospy.Publisher('top_label', String, queue_size=10)
+        self.result_pub = rospy.Publisher('~top_label', String, queue_size=10)
         self.bridge = CvBridge()
 
     def image_callback(self, img_msg):

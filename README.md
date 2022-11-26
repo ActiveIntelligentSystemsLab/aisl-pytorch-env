@@ -1,6 +1,8 @@
 # aisl-pytorch-env
 Docker + ROS environment for easily using existing pre-trained PyTorch models
 
+<img width=400 src="images/demo.gif" alt="Demo"></img>
+
 ## Environment
 - CUDA 11.2
 - PyTorch 1.8.1
