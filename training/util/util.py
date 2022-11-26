@@ -128,6 +128,34 @@ def import_detection_model(model_name, version, num_classes=-1):
     return model
 
 
+def import_segmentation_model(model_name, version, num_classes=-1):
+    """ Import pre-trained object detection models
+    https://tutorials.pytorch.kr/beginner/finetuning_torchvision_models_tutorial.html
+
+    Args:
+        model_name: Name of the model to import
+            ['deeplabv3']
+        version: Version of the model (It depends on the model)
+            Deeplabv3: ['resnet101', 'resnet50', 'mobilenet_v3_large']
+
+    Return:
+        Imported model
+    """
+    model = None
+    # ResNet
+    if model_name == 'deeplabv3':
+        model = torch.hub.load(
+            'pytorch/vision:v0.9.1',
+            model_name + "_" + version,
+            pretrained=True)
+    # elif model_name == 'ssd':
+    #     pass
+    else:
+        raise ValueError
+
+    return model
+
+
 def visualize_classification(image_batch, output, class_list, writer, epoch):
     """ Visualize the prediction results
 
