@@ -7,22 +7,28 @@ WORKDIR /workspace
 # avoid blocking in installation of tzdata
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt install -y lsb-release net-tools \
+# Install ROS
+#  Add key
+# This is added to deal with old pubkey problem
+# RUN apt-key del A4B469963BF863CC \
+#     && rm /etc/apt/sources.list.d/nvidia-ml.list /etc/apt/sources.list.d/cuda.list
+
+RUN apt-get update && apt install -y lsb-release net-tools curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*rm 
 
-# Install ROS
-#  Add key
+# RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && \
+#     apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && \
-    apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 
 RUN apt update &&  \
     apt install -y ros-${ROS_DISTRO}-ros-base \
-                   ros-${ROS_DISTRO}-image-transport \
-                   ros-${ROS_DISTRO}-image-transport-plugins \
-                   ros-${ROS_DISTRO}-usb-cam \
-                   python3-catkin-tools python3-rosdep python3-osrf-pycommon  \
-                   python3-pip \
+    ros-${ROS_DISTRO}-image-transport \
+    ros-${ROS_DISTRO}-image-transport-plugins \
+    ros-${ROS_DISTRO}-usb-cam \
+    python3-catkin-tools python3-rosdep python3-osrf-pycommon  \
+    python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*rm
 
@@ -45,7 +51,7 @@ ENV PYTHONPATH /opt/ros/${ROS_DISTRO}/lib/python3/dist-packages:$PYTHONPATH
 #    && /opt/conda/bin/python ../tools/build_libtorch.py
 
 ########## PyTorch ##########
-RUN pip3 install torch==1.8.1 torchvision
+RUN pip3 install torch==1.8.1 torchvision==0.9.1
 RUN pip3 install efficientnet_pytorch
 
 RUN echo 'network_if=eth0' >> ~/.bashrc
@@ -56,6 +62,7 @@ RUN echo '      else' >> ~/.bashrc
 RUN echo '            export ROS_IP=$TARGET_IP' >> ~/.bashrc
 RUN echo '            fi' >> ~/.bashrc
 
+RUN pip3 install python-dateutil==2.8.1
 RUN pip3 install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
