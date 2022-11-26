@@ -5,9 +5,11 @@ import PIL.ImageDraw
 import PIL.ImageFont
 import struct
 #
-# imgmsg_to_pil and pil_to_imgmsg are from 
+# imgmsg_to_pil and pil_to_imgmsg are from
 #   https://github.com/AndreaCensi/ros_node_utils/blob/master/src/ros_node_utils/conversions/np_images.py
 #
+
+
 def imgmsg_to_pil(
     rosimage,
     encoding_to_mode={
@@ -69,7 +71,8 @@ def imgmsg_to_pil(
 
     if conversion == "f" or conversion == "d":
         dimsizes = [rosimage.height, rosimage.width, channels]
-        imagearr = numpy.array(255 * I, dtype=numpy.uint8)  # @UndefinedVariable
+        # @UndefinedVariable
+        imagearr = numpy.array(255 * I, dtype=numpy.uint8)
         im = PIL.Image.frombuffer(
             "RGB" if channels == 3 else "L",
             dimsizes[1::-1],
@@ -90,7 +93,8 @@ def imgmsg_to_pil(
             )
             raise ValueError(msg)
         if rosimage.encoding in ["16UC1", "bayer_grbg8"]:
-            warnings.warn("Probably conversion not correct for %s" % rosimage.encoding)
+            warnings.warn("Probably conversion not correct for %s" %
+                          rosimage.encoding)
         mode = encoding_to_mode[rosimage.encoding]
 
         step_size = PILmode_channels[mode]
@@ -101,10 +105,12 @@ def imgmsg_to_pil(
 #        if mode == "RGB":
 #            im = PIL.Image.merge("RGB", im.split()[-1::-1])
         return im, data, dimsizes
-    
+
+
 def pil_to_imgmsg(
     image,
-    encodingmap={"L": "mono8", "RGB": "rgb8", "RGBA": "rgba8", "YCbCr": "yuv422"},
+    encodingmap={"L": "mono8", "RGB": "rgb8",
+                 "RGBA": "rgba8", "YCbCr": "yuv422"},
     PILmode_channels={"L": 1, "RGB": 3, "RGBA": 4, "YCbCr": 3},
 ):
     # import roslib  # @UnresolvedImport @UnusedImport
@@ -120,6 +126,7 @@ def pil_to_imgmsg(
     rosimage.data = image.tobytes()
     return rosimage
 
+
 def write_on_pil(pil_image, text):
     draw = PIL.ImageDraw.Draw(pil_image)
-    draw.text((0,0), text)
+    draw.text((0, 0), text)
