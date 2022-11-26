@@ -41,7 +41,7 @@ class ObjectDetectionNode(InferenceNodeBase):
 
         # Additional publisher
         self.result_pub = rospy.Publisher(
-            'detection_result', ObjectDetection, queue_size=10)
+            '~detection_result', ObjectDetection, queue_size=10)
         self.bridge = CvBridge()
 
     def image_callback(self, img_msg):

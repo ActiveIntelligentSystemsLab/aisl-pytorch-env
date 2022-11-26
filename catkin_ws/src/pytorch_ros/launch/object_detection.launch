@@ -5,8 +5,8 @@
   <arg name="version" default="b7" />
 
   <node pkg="pytorch_ros" type="object_detection.py" name="object_detection" output="screen">
-    <remap from="image" to="$(arg image)" />
-    <param name="model_name" value="$(arg model_name)" />
-    <param name="version" type="str" value="$(arg version)" />
+    <remap from="~image" to="$(arg image)" />
+    <param name="~model_name" value="$(arg model_name)" />
+    <param name="~version" type="str" value="$(arg version)" />
   </node>
 </launch>

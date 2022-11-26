@@ -45,8 +45,8 @@ class InferenceNodeBase(object):
             self.model = None
 
         self.image_sub = rospy.Subscriber(
-            'image', Image, self.image_callback, queue_size=1)
-        self.image_pub = rospy.Publisher('visualize', Image, queue_size=10)
+            '~image', Image, self.image_callback, queue_size=1)
+        self.image_pub = rospy.Publisher('~visualize', Image, queue_size=10)
 
     def image_callback(self, img_msg):
         """ Take an image message and process it through the model
