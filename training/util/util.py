@@ -27,7 +27,7 @@ def import_model(model_name, version, num_classes=-1):
     if model_name == 'resnet':
         if version in ['18', '34', '50', '101', '152']:
             model = torch.hub.load(
-                'pytorch/vision:v0.9.2', 'resnet'+version, pretrained=True)
+                'pytorch/vision:v0.9.1', 'resnet'+version, pretrained=True)
             if num_classes > 0:
                 if version in ['18', '34']:
                     model.fc = torch.nn.Linear(512, num_classes)
@@ -39,7 +39,7 @@ def import_model(model_name, version, num_classes=-1):
 
     # AlexNet
     elif model_name == 'alexnet':
-        model = torch.hub.load('pytorch/vision:v0.9.2',
+        model = torch.hub.load('pytorch/vision:v0.9.1',
                                'alexnet', pretrained=True)
 
         if num_classes > 0:
@@ -47,7 +47,7 @@ def import_model(model_name, version, num_classes=-1):
 
     # Inception
     elif model_name == 'inception':
-        model = torch.hub.load('pytorch/vision:v0.9.2',
+        model = torch.hub.load('pytorch/vision:v0.9.1',
                                'inception_v3', pretrained=True)
 
         if num_classes > 0:
@@ -67,7 +67,7 @@ def import_model(model_name, version, num_classes=-1):
 
     # MobileNet v2
     elif model_name == 'mobilenet':
-        model = torch.hub.load('pytorch/vision:v0.9.2',
+        model = torch.hub.load('pytorch/vision:v0.9.1',
                                'mobilenet_v2', pretrained=True)
 
         if num_classes > 0:
@@ -78,7 +78,7 @@ def import_model(model_name, version, num_classes=-1):
     elif model_name == 'squeezenet':
         if version in ['1_0', '1_1']:
             model = torch.hub.load(
-                'pytorch/vision:v0.9.2', 'squeezenet'+version, pretrained=True)
+                'pytorch/vision:v0.9.1', 'squeezenet'+version, pretrained=True)
         else:
             print("There's no such ('{}') version of SqueezeNet".format(version))
             raise ValueError
@@ -90,7 +90,7 @@ def import_model(model_name, version, num_classes=-1):
     elif model_name == 'densenet':
         if version in ['121', '161', '169', '201']:
             model = torch.hub.load(
-                'pytorch/vision:v0.9.2', 'densenet'+version, pretrained=True)
+                'pytorch/vision:v0.9.1', 'densenet'+version, pretrained=True)
         else:
             print("There's no such ('{}') version of DenseNet".format(version))
             raise ValueError
@@ -109,7 +109,7 @@ def import_detection_model(model_name, version, num_classes=-1):
 
     Args:
         model_name: Name of the model to import
-            ['ssd', 'yolov5']
+            ['ssd', 'yolov5s']
         version: Version of the model (It depends on the model)
 
     Return:
@@ -117,10 +117,15 @@ def import_detection_model(model_name, version, num_classes=-1):
     """
     model = None
     # ResNet
-    if model_name == 'ssd':
-        pass
-    elif True:
-        pass
+    if model_name == 'yolov5s':
+        model = torch.hub.load(
+            'ultralytics/yolov5', model_name, pretrained=True)
+    # elif model_name == 'ssd':
+    #     pass
+    else:
+        raise ValueError
+
+    return model
 
 
 def visualize_classification(image_batch, output, class_list, writer, epoch):
