@@ -14,13 +14,18 @@ def import_model(model_name, version, num_classes=-1):
     """ Import pre-trained models
     https://tutorials.pytorch.kr/beginner/finetuning_torchvision_models_tutorial.html
 
-    Args:
-        model_name: Name of the model to import
-            ['resnet','alexnet','inception','efficientnet','mobilenet','squeezenet','densenet']
-        version: Version of the model (It depends on the model)
+    Parameters
+    ----------
+    model_name: `str`
+        Name of the model to import
+        ['resnet','alexnet','inception','efficientnet','mobilenet','squeezenet','densenet']
+    version: `str`
+        Version of the model (It depends on the model)
 
-    Return:
-        Imported model
+    Return
+    ------
+    model: `dict`
+        Dictionary that stores the imported model and other parameters etc.
     """
     model = None
     # ResNet
@@ -100,20 +105,26 @@ def import_model(model_name, version, num_classes=-1):
     else:
         raise ValueError
 
-    return model
+    return {"model": model, "transform": None}
 
 
 def import_detection_model(model_name, version, num_classes=-1):
     """ Import pre-trained object detection models
     https://tutorials.pytorch.kr/beginner/finetuning_torchvision_models_tutorial.html
 
-    Args:
-        model_name: Name of the model to import
-            ['ssd', 'yolov5s']
-        version: Version of the model (It depends on the model)
+    Parameters
+    ----------
+    model_name: `str`
+        Name of the model to import
+        ['ssd', 'yolov5s']
+    version: `str`
+        Version of the model (It depends on the model)
 
-    Return:
-        Imported model
+    Returns
+    -------
+    model: `dict`
+        Dictionary that stores the imported model and other parameters etc.
+
     """
     model = None
     # ResNet
@@ -125,35 +136,86 @@ def import_detection_model(model_name, version, num_classes=-1):
     else:
         raise ValueError
 
-    return model
+    return {"model": model, "transform": None}
 
 
 def import_segmentation_model(model_name, version, num_classes=-1):
-    """ Import pre-trained object detection models
+    """ Import pre-trained semantic segmentation models
     https://tutorials.pytorch.kr/beginner/finetuning_torchvision_models_tutorial.html
 
-    Args:
-        model_name: Name of the model to import
-            ['deeplabv3']
-        version: Version of the model (It depends on the model)
-            Deeplabv3: ['resnet101', 'resnet50', 'mobilenet_v3_large']
+    Parameters
+    ----------
+    model_name: `str`
+        Name of the model to import
+        ['deeplabv3']
+    version: `str`
+        Version of the model (It depends on the model)
+        Deeplabv3: ['resnet101', 'resnet50', 'mobilenet_v3_large']
 
-    Return:
-        Imported model
+    Returns
+    -------
+    model: `dict`
+        Dictionary that stores the imported model and other parameters etc.
+
     """
     model = None
     # ResNet
     if model_name == 'deeplabv3':
-        model = torch.hub.load(
-            'pytorch/vision:v0.9.1',
-            model_name + "_" + version,
-            pretrained=True)
+        if version in ['resnet101', 'resnet50', 'mobilenet_v3_large']:
+            model = torch.hub.load(
+                'pytorch/vision:v0.9.1',
+                model_name + "_" + version,
+                pretrained=True)
+        else:
+            raise ValueError
     # elif model_name == 'ssd':
     #     pass
     else:
         raise ValueError
 
-    return model
+    return {"model": model, "transform": None}
+
+
+def import_depth_estimation_model(model_name, version, num_classes=-1):
+    """ Import pre-trained semantic segmentation models
+    https://tutorials.pytorch.kr/beginner/finetuning_torchvision_models_tutorial.html
+
+    Parameters
+    ----------
+    model_name: `str`
+        Name of the model to import
+        ['midas']
+    version: `str`
+        Version of the model (It depends on the model)
+        MiDaS: ['DPT_Large', 'DPT_Hybrid', 'MiDaS_small']
+
+    Returns
+    -------
+    model: `dict`
+        Dictionary that stores the imported model and other parameters etc.
+
+    """
+    model = None
+    # ResNet
+    if model_name == 'midas':
+        if version in ['DPT_Large', 'DPT_Hybrid', 'MiDaS_small']:
+            model = torch.hub.load(
+                'intel-isl/MiDaS', version
+            )
+        else:
+            raise ValueError
+
+        midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
+        if version == "DPT_Large" or version == "DPT_Hybrid":
+            transform = midas_transforms.dpt_transform
+        else:
+            transform = midas_transforms.small_transform
+    # elif model_name == 'ssd':
+    #     pass
+    else:
+        raise ValueError
+
+    return {"model": model, "transform": transform}
 
 
 def visualize_classification(image_batch, output, class_list, writer, epoch):

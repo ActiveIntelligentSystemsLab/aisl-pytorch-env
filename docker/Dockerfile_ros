@@ -64,5 +64,6 @@ RUN echo '            fi' >> ~/.bashrc
 
 RUN pip3 install python-dateutil==2.8.1
 RUN pip3 install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
+RUN pip3 install timm
 
 ENTRYPOINT ["/ros_entrypoint.sh"]

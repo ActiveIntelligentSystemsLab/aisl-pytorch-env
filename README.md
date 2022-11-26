@@ -1,10 +1,15 @@
 # aisl-pytorch-env
 Docker + ROS environment for easily using existing pre-trained PyTorch models
 
+## Environment
+- CUDA 11.2
+- PyTorch 1.8.1
+- Torchvision 0.9.1
+
 ## Requirements
 - Docker
 - nvidia-docker2
-- NVIDIA driver compatible with 
+- NVIDIA driver compatible with CUDA 11.2
 
 ## Building docker images
 
@@ -49,6 +54,7 @@ Docker + ROS environment for easily using existing pre-trained PyTorch models
 - Run:
    ```
    docker-compose up ros-object-detection
+   ```
 
  ### Semantic segmentation
 - Run:
@@ -56,6 +62,12 @@ Docker + ROS environment for easily using existing pre-trained PyTorch models
    docker-compose up ros-semantic-segmentation
   ```
 
-## Models to be supported
+ ### Depth estimation ([MiDaS](https://pytorch.org/hub/intelisl_midas_v2/))
+- Run:
+   ```
+   docker-compose up ros-depth-estimation
+   ```
 
-- [MiDaS](https://pytorch.org/hub/intelisl_midas_v2/)
+## More things to add
+
+- Face detection / recognition
