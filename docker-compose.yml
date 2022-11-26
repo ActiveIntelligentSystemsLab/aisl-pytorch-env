@@ -1,6 +1,6 @@
 version: "2.3"
 
-services: 
+services:
   master:
     container_name: master-aisl-pytorch
     image: aisl-pytorch-ros:21.03-py3
@@ -45,7 +45,7 @@ services:
       - master
     build: .
     runtime: nvidia
-    image: aisl-pytorch-ros:20.03-py3
+    image: aisl-pytorch-ros:21.03-py3
     command: rosrun usb_cam usb_cam_node
     working_dir: /root/catkin_ws
     environment:
