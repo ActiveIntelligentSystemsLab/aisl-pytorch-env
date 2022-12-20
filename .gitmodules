@@ -1,3 +1,6 @@
 [submodule "catkin_ws/src/aisl_utils"]
 	path = catkin_ws/src/aisl_utils
 	url = https://github.com/ActiveIntelligentSystemsLab/aisl_utils
+[submodule "catkin_ws/src/pytorch_ros/script/rospy_util"]
+	path = catkin_ws/src/pytorch_ros/script/rospy_util
+	url = git@github.com:ActiveIntelligentSystemsLab/rospy_pytorch_util.git
